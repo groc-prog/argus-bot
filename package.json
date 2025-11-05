@@ -5,8 +5,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "bun run src/index.ts",
-    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts | jq",
+    "dev": "bun run --hot src/index.ts | jq",
     "build": "bun build src/index.ts --outdir dist --target bun --env disable --sourcemap",
     "fmt": "prettier --write src/**/*.ts",
     "fmt:check": "prettier --check src/**/*.ts",
@@ -40,5 +40,9 @@
       "prettier --write",
       "eslint --fix"
     ]
+  },
+  "dependencies": {
+    "discord.js": "^14.24.2",
+    "pino": "^10.1.0"
   }
 }
