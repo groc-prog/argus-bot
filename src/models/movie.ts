@@ -15,12 +15,10 @@ const moviePerformanceSchema = new mongoose.Schema({
     type: mongoose.SchemaTypes.Number,
     required: true,
   },
-  theatre: [
-    {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: MovieAttributeModel.modelName,
-    },
-  ],
+  theatre: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: MovieAttributeModel.modelName,
+  },
   seatClasses: [
     {
       type: mongoose.SchemaTypes.ObjectId,
@@ -50,6 +48,7 @@ const movieSchema = new mongoose.Schema(
       type: mongoose.SchemaTypes.String,
       trim: true,
       required: true,
+      unique: true,
     },
     descriptionShort: {
       type: mongoose.SchemaTypes.String,
@@ -63,7 +62,8 @@ const movieSchema = new mongoose.Schema(
       type: mongoose.SchemaTypes.Number,
     },
     fsk: {
-      type: mongoose.SchemaTypes.Number,
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: MovieAttributeModel.modelName,
     },
     genres: [
       {
@@ -84,5 +84,6 @@ const movieSchema = new mongoose.Schema(
   },
 );
 
+export type MoviePerformance = mongoose.InferSchemaType<typeof moviePerformanceSchema>;
 export type Movie = mongoose.InferSchemaType<typeof movieSchema>;
 export const MovieModel = mongoose.model('Movie', movieSchema);
