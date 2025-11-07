@@ -4,6 +4,7 @@ import utc from 'dayjs/plugin/utc';
 import WebScraperService from './services/web-scraper';
 import mongoose from 'mongoose';
 import logger from './utils/logger';
+import client from './bot/client';
 
 dayjs.extend(timezone);
 dayjs.extend(utc);
@@ -31,3 +32,5 @@ await mongoose.connect(process.env.MONGODB_URI);
 
 const webScraper = new WebScraperService();
 await webScraper.initialize();
+
+await client.initialize();

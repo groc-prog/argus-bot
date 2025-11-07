@@ -1,6 +1,7 @@
 import pino, { type TransportTargetOptions } from 'pino';
 import packageJson from '../../package.json';
 import type { Interaction } from 'discord.js';
+import { merge } from './object';
 
 const transportTargets: TransportTargetOptions[] = [
   {
@@ -42,9 +43,8 @@ export function interactionContextAwareLogger(
   interaction: Interaction,
   context?: pino.Bindings,
 ): pino.Logger {
-  const boundContext: pino.Bindings = {
+  const boundContext = merge(context ?? {}, {
     discord: {
-      ...context,
       interactionType: interaction.type,
       userId: interaction.user.id,
       guildId: interaction.guildId ?? undefined,
@@ -52,7 +52,7 @@ export function interactionContextAwareLogger(
       type: interaction.type,
       command: interaction.isCommand() ? interaction.commandName : undefined,
     },
-  };
+  } as pino.Bindings);
 
   return logger.child(boundContext);
 }

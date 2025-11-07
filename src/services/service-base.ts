@@ -2,7 +2,7 @@ import logger from '../utils/logger';
 
 export default abstract class ServiceBase {
   private static instances = new Map<new () => unknown, unknown>();
-  protected logger = logger.child({ service: this.constructor.name });
+  protected logger = logger.child({ component: this.constructor.name });
 
   /**
    * Initial setup work the service has to perform. This may include things like registering
