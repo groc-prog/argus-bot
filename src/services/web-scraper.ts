@@ -18,7 +18,7 @@ type ExtractedMovie = Omit<Movie, keyof mongoose.DefaultTimestampProps | 'perfor
 };
 
 export default class WebScraperService extends ServiceBase {
-  private url = 'https://gleisdorf.dieselkino.at/programmuebersicht';
+  private static readonly baseUrl = 'https://gleisdorf.dieselkino.at/programmuebersicht';
 
   initialize(): Bun.MaybePromise<void> {
     this.logger.info('Initializing service');
@@ -59,9 +59,17 @@ export default class WebScraperService extends ServiceBase {
     }
   }
 
+  /**
+   * Returns the URL from which the data is scraped.
+   * @returns {string} The scraped URL.
+   */
+  static url(): string {
+    return this.baseUrl;
+  }
+
   private async scrapeWebPage(): Promise<object> {
-    this.logger.info({ url: this.url }, 'Fetching web page content');
-    const response = await fetch(this.url);
+    this.logger.info({ url: WebScraperService.baseUrl }, 'Fetching web page content');
+    const response = await fetch(WebScraperService.baseUrl);
     if (!response.ok)
       throw new Error(`Failed to fetch web page with status code ${response.status}`);
 

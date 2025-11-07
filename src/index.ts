@@ -5,6 +5,7 @@ import WebScraperService from './services/web-scraper';
 import mongoose from 'mongoose';
 import logger from './utils/logger';
 import client from './bot/client';
+import NotificationService from './services/notifications';
 
 dayjs.extend(timezone);
 dayjs.extend(utc);
@@ -30,7 +31,10 @@ if (!process.env.MONGODB_URI) {
 logger.info('Connecting to MongoDB');
 await mongoose.connect(process.env.MONGODB_URI);
 
-const webScraper = new WebScraperService();
-await webScraper.initialize();
-
 await client.initialize();
+
+const webScraperService = new WebScraperService();
+await webScraperService.initialize();
+
+const notificationService = new NotificationService();
+await notificationService.initialize();

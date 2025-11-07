@@ -23,6 +23,7 @@ export default defineConfig([
   },
   {
     rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/restrict-template-expressions': [
         'error',
         {
