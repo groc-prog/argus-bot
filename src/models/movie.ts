@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { MovieAttributeModel } from './movie-attributes';
+import { MovieAttributeModel } from './movie-attribute';
 
 const moviePerformanceSchema = new mongoose.Schema({
   attributes: [
@@ -50,16 +50,13 @@ const movieSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    descriptionShort: {
-      type: mongoose.SchemaTypes.String,
-      trim: true,
-    },
     description: {
       type: mongoose.SchemaTypes.String,
       trim: true,
     },
     lengthMinutes: {
       type: mongoose.SchemaTypes.Number,
+      min: 0,
     },
     fsk: {
       type: mongoose.SchemaTypes.ObjectId,

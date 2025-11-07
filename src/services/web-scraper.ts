@@ -7,7 +7,7 @@ import {
   KnownAttributeCategories as KnownAttributeCategory,
   MovieAttributeModel,
   type MovieAttribute,
-} from '../models/movie-attributes';
+} from '../models/movie-attribute';
 import { MovieModel, type Movie, type MoviePerformance } from '../models/movie';
 import type mongoose from 'mongoose';
 import { isObject } from '../utils/object';
@@ -55,7 +55,7 @@ export default class WebScraperService extends ServiceBase {
       );
       this.logger.info('Service initialized successfully');
     } catch (err) {
-      this.logger.error(err, 'Failed to run global setup, service will not function as expected');
+      this.logger.error(err, 'Failed to initialize service. Service will not function as expected');
     }
   }
 
@@ -319,8 +319,6 @@ export default class WebScraperService extends ServiceBase {
         posterUrl: typeof movieData.posterURL === 'string' ? movieData.posterURL : null,
         trailerUrl: typeof movieData.trailerURL === 'string' ? movieData.trailerURL : null,
         title: movieData.title,
-        descriptionShort:
-          typeof movieData.descriptionShort === 'string' ? movieData.descriptionShort : null,
         description: typeof movieData.description === 'string' ? movieData.description : null,
         lengthMinutes: typeof movieData.length === 'number' ? movieData.length : null,
         fsk: resolvedFsk?._id ?? null,
