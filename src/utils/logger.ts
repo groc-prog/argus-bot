@@ -46,8 +46,8 @@ export function interactionContextAwareLogger(
   const boundContext = merge(context ?? {}, {
     discord: {
       interactionType: interaction.type,
-      userId: interaction.user.id,
-      guildId: interaction.guildId ?? undefined,
+      user: interaction.user.id,
+      guild: interaction.guildId ?? undefined,
       locale: interaction.locale,
       type: interaction.type,
       command: interaction.isCommand() ? interaction.commandName : undefined,
