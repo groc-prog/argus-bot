@@ -1,4 +1,4 @@
-import logger from '../utils/logger';
+import logger from '@utils/logger';
 
 export default abstract class ServiceBase {
   private static instances = new Map<new () => unknown, unknown>();

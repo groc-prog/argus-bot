@@ -1,14 +1,18 @@
-import mongoose from 'mongoose';
-import ServiceBase from './service-base';
-import { GuildConfigurationModel } from '../models/guild-configuration';
+import movieInfoCommand from '@commands/movies/info';
+import moviePerformancesCommand from '@commands/movies/performances';
+import { GuildConfigurationModel } from '@models/guild-configuration';
+import { MovieModel, type Movie, type MoviePerformance } from '@models/movie';
+import type { MovieAttribute } from '@models/movie-attribute';
+import ServiceBase from '@services/service-base';
+import WebScraperService from '@services/web-scraper';
+import threadAnnouncementTemplates from '@templates/guild-notification/thread-announcement';
+import threadEmbedDescriptionTemplates from '@templates/guild-notification/thread-embed-description';
+import threadEmbedTitleTemplates from '@templates/guild-notification/thread-embed-title';
+import threadMessageTemplates from '@templates/guild-notification/thread-message';
+import threadNameTemplates from '@templates/guild-notification/thread-name';
+import type { DeepWriteable } from '@utils/object';
 import { Cron, scheduledJobs } from 'croner';
 import dayjs from 'dayjs';
-import { MovieModel, type Movie, type MoviePerformance } from '../models/movie';
-import threadNameTemplates from '../templates/guild-notification/thread-name';
-import threadAnnouncementTemplates from '../templates/guild-notification/thread-announcement';
-import threadMessageTemplates from '../templates/guild-notification/thread-message';
-import threadEmbedDescriptionTemplates from '../templates/guild-notification/thread-embed-description';
-import threadEmbedTitleTemplates from '../templates/guild-notification/thread-embed-title';
 import {
   EmbedBuilder,
   Locale,
@@ -16,9 +20,7 @@ import {
   ThreadAutoArchiveDuration,
   type BaseMessageOptions,
 } from 'discord.js';
-import WebScraperService from './web-scraper';
-import type { MovieAttribute } from '../models/movie-attribute';
-import type { DeepWriteable } from '../utils/object';
+import mongoose from 'mongoose';
 
 interface JobContext {
   guildIds: Set<string>;
@@ -257,15 +259,24 @@ export default class GuildNotificationService extends ServiceBase {
       }, 5000);
 
       threadLogger.info(`Sending ${movies.length} notifications to thread`);
+      const performancesCommand =
+        moviePerformancesCommand.data.name_localizations &&
+        locale in moviePerformancesCommand.data.name_localizations
+          ? moviePerformancesCommand.data.name_localizations[locale]
+          : moviePerformancesCommand.data.name;
+      const infoCommand =
+        movieInfoCommand.data.name_localizations &&
+        locale in movieInfoCommand.data.name_localizations
+          ? movieInfoCommand.data.name_localizations[locale]
+          : movieInfoCommand.data.name;
+
       await thread.send({
         content: threadAnnouncementTemplates.get(locale)!({
           performancesTruncated,
           mentionedRoleId: role?.id,
           websiteUrl: WebScraperService.url(),
-          // TODO: replace this with the actual command name
-          performancesCommand: 'placeholder',
-          // TODO: replace this with the actual command name
-          movieInfoCommand: 'placeholder',
+          performancesCommand,
+          infoCommand,
         }),
       });
 

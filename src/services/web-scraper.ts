@@ -1,16 +1,16 @@
-import { Cron } from 'croner';
-import ServiceBase from './service-base';
-import dayjs from 'dayjs';
-import { load } from 'cheerio';
-import { ElementType } from 'domelementtype';
+import { MovieModel, type Movie, type MoviePerformance } from '@models/movie';
 import {
   KnownAttributeCategories as KnownAttributeCategory,
   MovieAttributeModel,
   type MovieAttribute,
-} from '../models/movie-attribute';
-import { MovieModel, type Movie, type MoviePerformance } from '../models/movie';
+} from '@models/movie-attribute';
+import ServiceBase from '@services/service-base';
+import { isObject } from '@utils/object';
+import { load } from 'cheerio';
+import { Cron } from 'croner';
+import dayjs from 'dayjs';
+import { ElementType } from 'domelementtype';
 import type mongoose from 'mongoose';
-import { isObject } from '../utils/object';
 
 type ExtractedMovieAttribute = Omit<MovieAttribute, keyof mongoose.DefaultTimestampProps>;
 type ExtractedMovie = Omit<Movie, keyof mongoose.DefaultTimestampProps | 'performances'> & {

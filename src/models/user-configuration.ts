@@ -1,6 +1,6 @@
+import { cooldownSchema } from '@models/cooldown';
 import { Locale } from 'discord.js';
 import mongoose from 'mongoose';
-import { cooldownSchema } from './cooldown';
 
 const userConfigurationSchema = new mongoose.Schema(
   {

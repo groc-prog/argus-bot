@@ -8,10 +8,10 @@
     "start": "bun run src/index.ts | jq",
     "dev": "bun run --hot src/index.ts | jq",
     "build": "bun build src/index.ts --outdir dist --target bun --env disable --sourcemap",
-    "fmt": "prettier --write src/**/*.ts",
-    "fmt:check": "prettier --check src/**/*.ts",
-    "lint": "eslint --cache --fix src/**/*.ts",
-    "lint:check": "eslint --cache src/**/*.ts",
+    "fmt": "prettier --write src/**",
+    "fmt:check": "prettier --check src/**",
+    "lint": "eslint --cache --fix src/**",
+    "lint:check": "eslint --cache src/**",
     "type-check": "tsc --noEmit",
     "prepare": "husky"
   },
@@ -29,6 +29,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "semantic-release": "^25.0.1",
     "typescript-eslint": "^8.46.3"
   },

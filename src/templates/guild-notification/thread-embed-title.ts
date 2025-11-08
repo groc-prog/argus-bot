@@ -1,5 +1,5 @@
+import { compileFromDefinitions, type MessageDefinitions } from '@utils/handlebars';
 import { Locale } from 'discord.js';
-import { compileFromDefinitions, type MessageDefinitions } from '../../utils/handlebars';
 
 const definitions: MessageDefinitions = {
   [Locale.EnglishUS]: 'Preview',

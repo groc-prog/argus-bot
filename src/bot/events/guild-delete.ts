@@ -1,5 +1,5 @@
+import { GuildConfigurationModel } from '@models/guild-configuration';
 import { Events, Guild } from 'discord.js';
-import { GuildConfigurationModel } from '../../models/guild-configuration';
 
 export default {
   name: Events.GuildDelete,

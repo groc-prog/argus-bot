@@ -1,8 +1,7 @@
+import commands from '@commands/index';
+import events from '@events/index';
+import baseLogger from '@utils/logger';
 import { Client, GatewayIntentBits, REST, Routes, type ClientEvents } from 'discord.js';
-import commands from './commands';
-import events from './events';
-
-import baseLogger from '../utils/logger';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 

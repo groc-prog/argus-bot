@@ -1,7 +1,7 @@
+import { merge } from '@utils/object';
+import type { Interaction } from 'discord.js';
 import pino, { type TransportTargetOptions } from 'pino';
 import packageJson from '../../package.json';
-import type { Interaction } from 'discord.js';
-import { merge } from './object';
 
 const transportTargets: TransportTargetOptions[] = [
   {

@@ -1,8 +1,8 @@
+import client from '@bot-client';
+import rootLogger from '@utils/logger';
 import { Cron } from 'croner';
-import mongoose from 'mongoose';
-import rootLogger from '../utils/logger';
-import client from '../bot/client';
 import { Client, Guild, NewsChannel, PermissionFlagsBits, Role, TextChannel } from 'discord.js';
+import mongoose from 'mongoose';
 
 const guildConfigurationSchema = new mongoose.Schema(
   {

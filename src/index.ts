@@ -1,11 +1,11 @@
+import client from '@bot-client';
+import GuildNotificationService from '@services/guild-notifications';
+import WebScraperService from '@services/web-scraper';
+import logger from '@utils/logger';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
-import WebScraperService from './services/web-scraper';
 import mongoose from 'mongoose';
-import logger from './utils/logger';
-import client from './bot/client';
-import GuildNotificationService from './services/guild-notifications';
 
 dayjs.extend(timezone);
 dayjs.extend(utc);

@@ -1,6 +1,6 @@
+import client from '@bot-client';
+import { interactionContextAwareLogger } from '@utils/logger';
 import { Events, type Interaction } from 'discord.js';
-import client from '../client';
-import { interactionContextAwareLogger } from '../../utils/logger';
 
 export default {
   name: Events.InteractionCreate,

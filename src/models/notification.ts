@@ -1,6 +1,6 @@
+import { cooldownSchema } from '@models/cooldown';
+import { UserConfigurationModel } from '@models/user-configuration';
 import mongoose from 'mongoose';
-import { cooldownSchema } from './cooldown';
-import { UserConfigurationModel } from './user-configuration';
 
 export enum SearchTermType {
   Title,

@@ -1,5 +1,5 @@
+import { MovieAttributeModel } from '@models/movie-attribute';
 import mongoose from 'mongoose';
-import { MovieAttributeModel } from './movie-attribute';
 
 const moviePerformanceSchema = new mongoose.Schema({
   attributes: [

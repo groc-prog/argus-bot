@@ -1,6 +1,6 @@
+import { compileFromDefinitions, type MessageDefinitions } from '@utils/handlebars';
+import { message } from '@utils/string';
 import { bold, heading, HeadingLevel, hideLinkEmbed, hyperlink, Locale, quote } from 'discord.js';
-import { message } from '../../utils/string';
-import { compileFromDefinitions, type MessageDefinitions } from '../../utils/handlebars';
 
 const definitions: MessageDefinitions = {
   [Locale.EnglishUS]: message`
