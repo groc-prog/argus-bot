@@ -42,7 +42,6 @@ const guildConfigurationSchema = new mongoose.Schema(
     notificationsEnabled: {
       type: mongoose.SchemaTypes.Boolean,
       default: false,
-      required: true,
     },
     /**
      * Whether the bot should include the poster of the movie in his notification. Only works if the
@@ -57,13 +56,6 @@ const guildConfigurationSchema = new mongoose.Schema(
      * works if the movie has `trailerUrl` set.
      */
     includeTrailerInNotifications: {
-      type: mongoose.SchemaTypes.Boolean,
-      default: false,
-    },
-    /**
-     * If set to `true`, the bot will post all notifications in all available languages.
-     */
-    multiLanguageNotifications: {
       type: mongoose.SchemaTypes.Boolean,
       default: false,
     },

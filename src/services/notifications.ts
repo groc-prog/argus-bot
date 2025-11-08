@@ -1,4 +1,4 @@
-import type mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import ServiceBase from './service-base';
 import { GuildConfigurationModel } from '../models/guild-configuration';
 import { Cron } from 'croner';
@@ -7,9 +7,18 @@ import { MovieModel, type Movie, type MoviePerformance } from '../models/movie';
 import threadNameTemplates from '../templates/guild-notification/thread-name';
 import threadAnnouncementTemplates from '../templates/guild-notification/thread-announcement';
 import threadMessageTemplates from '../templates/guild-notification/thread-message';
-import { Locale, MessageFlags, ThreadAutoArchiveDuration } from 'discord.js';
+import threadEmbedDescriptionTemplates from '../templates/guild-notification/thread-embed-description';
+import threadEmbedTitleTemplates from '../templates/guild-notification/thread-embed-title';
+import {
+  EmbedBuilder,
+  Locale,
+  MessageFlags,
+  ThreadAutoArchiveDuration,
+  type BaseMessageOptions,
+} from 'discord.js';
 import WebScraperService from './web-scraper';
 import type { MovieAttribute } from '../models/movie-attribute';
+import type { DeepWriteable } from '../utils/object';
 
 interface GuildNotificationContext {
   schedule: string;
@@ -107,7 +116,7 @@ export default class NotificationService extends ServiceBase {
     }
   }
 
-  private async sendGuildNotifications(context: GuildNotificationContext): Promise<void> {
+  async sendGuildNotifications(context: GuildNotificationContext): Promise<void> {
     const logger = this.logger.child({ schedule: context.schedule });
 
     logger.info('Fetching movie data from database');
@@ -134,6 +143,7 @@ export default class NotificationService extends ServiceBase {
         path: 'performances.theatre',
         select: 'displayName',
       })
+      .sort({ title: 'asc' })
       .select({
         posterUrl: 1,
         trailerUrl: 1,
@@ -146,6 +156,14 @@ export default class NotificationService extends ServiceBase {
         performances: { $slice: 3 },
       })) as unknown as mongoose.HydratedDocument<PopulatedMovie>[];
 
+    logger.debug('Checking if there are movies with truncated performances');
+    const hasTruncatedPerformances = await MovieModel.countDocuments({
+      _id: {
+        $in: movies.map((movie) => movie._id),
+      },
+      'performances.3': { $exists: true },
+    });
+
     if (movies.length === 0) {
       logger.info('No movies to send notifications for, skipping');
       return;
@@ -153,13 +171,14 @@ export default class NotificationService extends ServiceBase {
 
     logger.info(`Found ${movies.length} movies to send notifications for`);
     for (const guildId of context.guildIds) {
-      await this.createAndNotifyGuildThread(guildId, movies);
+      await this.createAndNotifyGuildThread(guildId, movies, hasTruncatedPerformances > 0);
     }
   }
 
   private async createAndNotifyGuildThread(
     guildId: string,
     movies: mongoose.HydratedDocument<PopulatedMovie>[],
+    performancesTruncated: boolean,
   ): Promise<void> {
     const logger = this.logger.child({ guild: guildId });
     try {
@@ -184,9 +203,16 @@ export default class NotificationService extends ServiceBase {
       });
 
       const threadLogger = logger.child({ thread: thread.id });
-      threadLogger.info('Sending notifications to thread');
+      threadLogger.info(`Sending ${movies.length} notifications to thread`);
       await thread.send({
-        content: threadAnnouncementTemplates.get(locale)!({ websiteUrl: WebScraperService.url() }),
+        content: threadAnnouncementTemplates.get(locale)!({
+          performancesTruncated,
+          websiteUrl: WebScraperService.url(),
+          // TODO: replace this with the actual command name
+          performancesCommand: 'placeholder',
+          // TODO: replace this with the actual command name
+          movieInfoCommand: 'placeholder',
+        }),
       });
 
       const typingInterval = setInterval(() => {
@@ -194,18 +220,24 @@ export default class NotificationService extends ServiceBase {
         thread.sendTyping().catch((err: unknown) => {
           threadLogger.error(err, 'Failed to send typing status to Discord API');
         });
-      }, 10000);
+      }, 5000);
 
       let sentMessages = 0;
       let failedMessages = 0;
       for (const movie of movies) {
         try {
           threadLogger.debug({ movie: movie.id }, 'Sending notification for movie');
+          const embeds: DeepWriteable<BaseMessageOptions['embeds']> = [];
+          if (guildConfiguration.includePosterInNotifications && movie.posterUrl)
+            embeds.push(
+              new EmbedBuilder()
+                .setTitle(threadEmbedTitleTemplates.get(locale)!({ title: movie.title }))
+                .setImage(movie.posterUrl)
+                .setDescription(threadEmbedDescriptionTemplates.get(locale)!({})),
+            );
+
           await thread.send({
             content: threadMessageTemplates.get(locale)!({
-              // TODO: replace this with the actual command name
-              performancesCommand: 'placeholder',
-              posterUrl: guildConfiguration.includePosterInNotifications ? movie.posterUrl : null,
               trailerUrl: guildConfiguration.includeTrailerInNotifications
                 ? movie.trailerUrl
                 : null,
@@ -230,6 +262,7 @@ export default class NotificationService extends ServiceBase {
               })),
             }),
             flags: [MessageFlags.SuppressNotifications],
+            embeds: embeds as BaseMessageOptions['embeds'],
           });
 
           sentMessages++;

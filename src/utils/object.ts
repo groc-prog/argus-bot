@@ -1,4 +1,10 @@
 /**
+ * Removes all nested `readonly` modifies from a given interface/type.
+ * @template T - The type which has a readonly property.
+ */
+export type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
+
+/**
  * Checks if the provided value is a object or not.
  * @param {unknown} value - The value to check.
  * @returns {boolean} `true` if the value is a valid JS object, otherwise `false`.

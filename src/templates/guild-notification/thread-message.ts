@@ -20,7 +20,7 @@ const definitions: MessageDefinitions = {
     {{/if}}
 
     {{#if trailerUrl}}
-      ${quote(`Watch the trailer ${hyperlink('here', hideLinkEmbed('{{trailerUrl}}'))} to get a taste of what the movie is like!`)}
+      ${quote(`Watch ${hyperlink('the trailer', hideLinkEmbed('{{trailerUrl}}'))} to get a taste of what the movie is like!`)}
     {{/if}}
 
     ${heading('🎬  Upcoming performances', HeadingLevel.Two)}
@@ -57,7 +57,7 @@ const definitions: MessageDefinitions = {
     {{/if}}
 
     {{#if trailerUrl}}
-      ${quote(`Sieh dir den Trailer ${hyperlink('hier', hideLinkEmbed('{{trailerUrl}}'))} an, um einen Vorgeschmack auf den Film zu bekommen!`)}
+      ${quote(`Sieh dir ${hyperlink('den Trailer', hideLinkEmbed('{{trailerUrl}}'))} an, um einen Vorgeschmack auf den Film zu bekommen!`)}
     {{/if}}
 
     ${heading('🎬  Upcoming performances', HeadingLevel.Two)}
