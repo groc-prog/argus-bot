@@ -1,4 +1,4 @@
-import { Events, Guild } from 'discord.js';
+import { Events, Guild, PermissionFlagsBits } from 'discord.js';
 import { GuildConfigurationModel } from '../../models/guild-configuration';
 
 export default {
@@ -9,25 +9,37 @@ export default {
     logger.info('Joining new guild, setting up defaults for guild configuration');
 
     try {
-      // We should only ever find existing guild configurations for non-joined guilds if
-      // There was a error when the bot was removed. In this case we just reset the
-      // configuration to it's defaults.
-      await GuildConfigurationModel.updateOne(
-        { guildId: guild.id },
-        {
-          $set: {
-            guildId: guild.id,
-            notificationChannelId: null,
-            notificationSchedule: process.env.DEFAULT_NOTIFICATION_SCHEDULE,
-            notificationsEnabled: false,
-            includePosterInNotifications: false,
-            includeTrailerInNotifications: false,
-            multiLanguageNotifications: false,
-            preferredTimezone: 'Europe/Vienna',
-          },
-        },
-        { upsert: true },
-      );
+      let notificationMentionedRoleId: string | null = null;
+      if (guild.members.me?.permissions.has(PermissionFlagsBits.ManageRoles)) {
+        try {
+          const roleName = 'MovieNotifications';
+
+          logger.info('Creating role for mentions in guild notifications');
+          const role = await guild.roles.create({
+            name: roleName,
+            reason: 'Role for getting pinged when new movie notifications arrive',
+            mentionable: true,
+          });
+
+          notificationMentionedRoleId = role.id;
+          logger.info(`New role ${roleName} created successfully`);
+        } catch (err) {
+          logger.error(err, 'Failed to create movie mention role, skipping role setup');
+        }
+      }
+
+      const configuration = new GuildConfigurationModel({
+        guildId: guild.id,
+        notificationChannelId: null,
+        notificationSchedule: process.env.DEFAULT_NOTIFICATION_SCHEDULE,
+        notificationsEnabled: false,
+        notificationMentionedRoleId,
+        includePosterInNotifications: false,
+        includeTrailerInNotifications: false,
+        multiLanguageNotifications: false,
+        preferredTimezone: 'Europe/Vienna',
+      });
+      await configuration.save();
 
       logger.info('Successfully created guild configuration');
     } catch (err) {

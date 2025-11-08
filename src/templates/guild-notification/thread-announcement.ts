@@ -1,11 +1,19 @@
-import { heading, hideLinkEmbed, hyperlink, inlineCode, Locale, quote } from 'discord.js';
+import {
+  heading,
+  hideLinkEmbed,
+  hyperlink,
+  inlineCode,
+  Locale,
+  quote,
+  roleMention,
+} from 'discord.js';
 import { message } from '../../utils/string';
 import { compileFromDefinitions, type MessageDefinitions } from '../../utils/handlebars';
 
 const definitions: MessageDefinitions = {
   [Locale.EnglishUS]: message`
     ${heading("📢  ATTENTION PLEASE — Today's movie updates are in!  📢")}
-    Just checked the theatre and we've got the latest on what's playing today!
+    {{#if mentionedRoleId}}${roleMention('{{mentionedRoleId}}')} {{/if}}Just checked the theatre and we've got the latest on what's playing today!
     Scroll through, pick your favorites, and maybe plan a movie night — I've got your back with all the showtimes.
 
     ${quote(`Like what you see and want to know more? You can check all info for a single movie using the ${inlineCode('/{{movieInfoCommand}}')} command.`)}
@@ -18,7 +26,7 @@ const definitions: MessageDefinitions = {
     `,
   [Locale.German]: message`
     ${heading('📢  ACHTUNG — Die heutigen Film-Updates sind da!  📢')}
-    Hab gerade im Kino nachgeschaut und wir haben die neuesten Infos, was heute läuft :popcorn:
+    {{#if mentionedRoleId}}${roleMention('{{mentionedRoleId}}')} {{/if}}Hab gerade im Kino nachgeschaut und wir haben die neuesten Infos, was heute läuft :popcorn:
     Scroll dich durch, such dir deine Favoriten aus und plan vielleicht einen Kinoabend — ich hab die Showtimes für dich im Blick.
 
     ${quote(`Dir gefällt was du siehst und du willst mehr wissen?. Du kannst alle Info's über einen Film mit den Befehl ${inlineCode('/{{movieInfoCommand}}')} abrufen.`)}

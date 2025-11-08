@@ -2,7 +2,7 @@ import { Cron } from 'croner';
 import mongoose from 'mongoose';
 import rootLogger from '../utils/logger';
 import client from '../bot/client';
-import { Client, Guild, NewsChannel, PermissionFlagsBits, TextChannel } from 'discord.js';
+import { Client, Guild, NewsChannel, PermissionFlagsBits, Role, TextChannel } from 'discord.js';
 
 const guildConfigurationSchema = new mongoose.Schema(
   {
@@ -39,6 +39,10 @@ const guildConfigurationSchema = new mongoose.Schema(
         message: (props: mongoose.ValidatorProps) => `${props.value} is not a valid CRON pattern`,
       },
     },
+    /**
+     * A role which will be used in the announcement message to ping all users assigned to this role.
+     */
+    notificationMentionedRoleId: mongoose.SchemaTypes.String,
     notificationsEnabled: {
       type: mongoose.SchemaTypes.Boolean,
       default: false,
@@ -139,6 +143,29 @@ const guildConfigurationSchema = new mongoose.Schema(
         }
 
         return channel;
+      },
+      /**
+       * Resolves the role belonging to this model's `notificationMentionedRoleId`.
+       * @async
+       * @throws {Error} If the Discord client is not initialized yet.
+       * @returns {Role | null} The resolved role or null if the role is invalid or
+       * not configured yet.
+       */
+      async resolveMentionedRole(): Promise<Role | null> {
+        const logger = rootLogger.child({
+          guild: this.guildId,
+          role: this.notificationMentionedRoleId,
+        });
+        if (!client.isReady()) throw new Error('Discord client not ready yet');
+        if (!this.notificationMentionedRoleId) {
+          logger.info('No mentioned role defined in guild configuration');
+          return null;
+        }
+
+        logger.info('Fetching guild from Discord API');
+        const guild = await client.guilds.fetch(this.guildId);
+        const role = await guild.roles.fetch(this.notificationMentionedRoleId);
+        return role;
       },
     },
   },

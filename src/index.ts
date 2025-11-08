@@ -5,7 +5,7 @@ import WebScraperService from './services/web-scraper';
 import mongoose from 'mongoose';
 import logger from './utils/logger';
 import client from './bot/client';
-import NotificationService from './services/notifications';
+import GuildNotificationService from './services/guild-notifications';
 
 dayjs.extend(timezone);
 dayjs.extend(utc);
@@ -36,5 +36,5 @@ await client.initialize();
 const webScraperService = new WebScraperService();
 await webScraperService.initialize();
 
-const notificationService = new NotificationService();
-await notificationService.initialize();
+const guildNotificationService = new GuildNotificationService();
+await guildNotificationService.initialize();

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import ServiceBase from './service-base';
 import { GuildConfigurationModel } from '../models/guild-configuration';
-import { Cron } from 'croner';
+import { Cron, scheduledJobs } from 'croner';
 import dayjs from 'dayjs';
 import { MovieModel, type Movie, type MoviePerformance } from '../models/movie';
 import threadNameTemplates from '../templates/guild-notification/thread-name';
@@ -20,8 +20,7 @@ import WebScraperService from './web-scraper';
 import type { MovieAttribute } from '../models/movie-attribute';
 import type { DeepWriteable } from '../utils/object';
 
-interface GuildNotificationContext {
-  schedule: string;
+interface JobContext {
   guildIds: Set<string>;
 }
 
@@ -39,13 +38,60 @@ type PopulatedMovie = Pick<
   })[];
 };
 
-export default class NotificationService extends ServiceBase {
+export default class GuildNotificationService extends ServiceBase {
   async initialize(): Promise<void> {
     this.logger.info('Initializing service');
-    await this.setupInitialGuildJobs();
+    await this.setupInitialJobs();
   }
 
-  private async setupInitialGuildJobs(): Promise<void> {
+  /**
+   * Updates the schedule on which a guild gets notified. Both `oldSchedule` or `newSchedule` can be
+   * passed as `null` in case there was no old schedule or there should be no new schedule.
+   * @param {string} guildId - The ID of the guild to change schedules for.
+   * @param {string | null} oldSchedule - The old schedule, if it exists.
+   * @param {string | null} newSchedule - The new schedule, if there should be one.
+   */
+  updateSchedule(guildId: string, oldSchedule: string | null, newSchedule: string | null): void {
+    const logger = this.logger.child({
+      guild: guildId,
+      oldSchedule: oldSchedule ?? undefined,
+      newSchedule: newSchedule ?? undefined,
+    });
+    if (!oldSchedule && !newSchedule) {
+      logger.info('No old and new schedules provided, nothing to do');
+      return;
+    }
+
+    if (oldSchedule) {
+      logger.info('Removing guild from old job schedule');
+      const oldJob = scheduledJobs.find((job) => job.name === this.getJobName(oldSchedule));
+
+      if (oldJob) {
+        logger.debug('Updating context of old job');
+
+        const removed = (oldJob.options.context as JobContext).guildIds.delete(guildId);
+        if (removed)
+          logger.info('Successfully updated old context, will take effect on next scheduled run');
+        else logger.warn('Guild ID not found in job context, skipping context update');
+      } else logger.warn('Job not found, skipping context update');
+    }
+
+    if (newSchedule) {
+      logger.info('Adding guild to new job schedule');
+      const job = scheduledJobs.find((job) => job.name === this.getJobName(newSchedule));
+
+      if (!job) {
+        logger.info('Job does not exist yet, creating new job');
+        this.addJob(newSchedule, new Set([guildId]));
+      } else {
+        logger.info('Job found, updating context');
+        (job.options.context as JobContext).guildIds.add(guildId);
+        logger.info('Successfully updated job context, will take effect on next scheduled run');
+      }
+    }
+  }
+
+  private async setupInitialJobs(): Promise<void> {
     this.logger.info('Setting up scheduled jobs for all guilds');
     const aggregatedGuildSchedules = await GuildConfigurationModel.aggregate<{
       _id: string;
@@ -69,55 +115,53 @@ export default class NotificationService extends ServiceBase {
         },
       });
 
-    this.logger.info(`Found ${aggregatedGuildSchedules.length} guild jobs to register`);
-    const jobGroups = aggregatedGuildSchedules.map((aggregate) => ({
-      schedule: aggregate._id,
-      guildIds: new Set(aggregate.guildIds),
-    }));
-
-    for (const group of jobGroups) {
-      try {
-        new Cron(
-          group.schedule,
-          {
-            name: `guild-${group.schedule}`,
-            protect: true,
-            context: {
-              guildIds: group.guildIds,
-            },
-            catch: (err, job) => {
-              const nextScheduleInMs = job.msToNext();
-              this.logger.error(
-                {
-                  err,
-                  schedule: job.getPattern(),
-                  nextScheduleAt: nextScheduleInMs
-                    ? dayjs.utc().add(nextScheduleInMs, 'ms')
-                    : 'unknown',
-                },
-                'Failed to run scheduled guild job',
-              );
-            },
-          },
-          async (job, context) => {
-            await this.sendGuildNotifications({
-              guildIds: (context as Pick<GuildNotificationContext, 'guildIds'>).guildIds,
-              schedule: job.getPattern() as string,
-            });
-          },
-        );
-        this.logger.info({ schedule: group.schedule }, 'Guild job created successfully');
-      } catch (err) {
-        this.logger.error(
-          { err, schedule: group.schedule },
-          'Failed to register guild job. Guild will not receive any notifications',
-        );
-      }
+    this.logger.info(`Found ${aggregatedGuildSchedules.length} jobs to register`);
+    for (const aggregate of aggregatedGuildSchedules) {
+      this.addJob(aggregate._id, new Set(aggregate.guildIds));
     }
   }
 
-  private async sendGuildNotifications(context: GuildNotificationContext): Promise<void> {
-    const logger = this.logger.child({ schedule: context.schedule });
+  private addJob(schedule: string, guildIds: Set<string>): void {
+    const logger = this.logger.child({ schedule, guildIds: Array.from(guildIds) });
+
+    try {
+      new Cron(
+        schedule,
+        {
+          name: this.getJobName(schedule),
+          protect: true,
+          context: {
+            guildIds: guildIds,
+          } as JobContext,
+          catch: (err, job) => {
+            const nextScheduleInMs = job.msToNext();
+            this.logger.error(
+              {
+                err,
+                schedule: job.getPattern(),
+                nextScheduleAt: nextScheduleInMs
+                  ? dayjs.utc().add(nextScheduleInMs, 'ms')
+                  : 'unknown',
+              },
+              'Failed to run scheduled job',
+            );
+          },
+        },
+        async (job, context) => {
+          await this.sendNotifications(
+            job.getPattern() as string,
+            (context as Pick<JobContext, 'guildIds'>).guildIds,
+          );
+        },
+      );
+      logger.info('Job created successfully');
+    } catch (err) {
+      logger.error(err, 'Failed to register job. Guild will not receive any notifications');
+    }
+  }
+
+  private async sendNotifications(schedule: string, guildIds: Set<string>): Promise<void> {
+    const logger = this.logger.child({ schedule: schedule });
 
     logger.info('Fetching movie data from database');
     const movies = (await MovieModel.find({
@@ -170,12 +214,12 @@ export default class NotificationService extends ServiceBase {
     }
 
     logger.info(`Found ${movies.length} movies to send notifications for`);
-    for (const guildId of context.guildIds) {
-      await this.createAndNotifyGuildThread(guildId, movies, hasTruncatedPerformances > 0);
+    for (const guildId of guildIds) {
+      await this.createAndNotifyThread(guildId, movies, hasTruncatedPerformances > 0);
     }
   }
 
-  private async createAndNotifyGuildThread(
+  private async createAndNotifyThread(
     guildId: string,
     movies: mongoose.HydratedDocument<PopulatedMovie>[],
     performancesTruncated: boolean,
@@ -190,6 +234,8 @@ export default class NotificationService extends ServiceBase {
       const channel = await guildConfiguration.resolveChannel();
       if (!channel) throw new Error('Could not resolve channel');
 
+      const role = await guildConfiguration.resolveMentionedRole();
+
       // We can check any of the three message templates as all of them need to implement
       // all locales from the `MessageDefinition` type.
       const locale = threadNameTemplates.has(guild.preferredLocale)
@@ -203,10 +249,18 @@ export default class NotificationService extends ServiceBase {
       });
 
       const threadLogger = logger.child({ thread: thread.id });
+      const typingInterval = setInterval(() => {
+        threadLogger.debug('Sending typing status to Discord API');
+        thread.sendTyping().catch((err: unknown) => {
+          threadLogger.error(err, 'Failed to send typing status to Discord API');
+        });
+      }, 5000);
+
       threadLogger.info(`Sending ${movies.length} notifications to thread`);
       await thread.send({
         content: threadAnnouncementTemplates.get(locale)!({
           performancesTruncated,
+          mentionedRoleId: role?.id,
           websiteUrl: WebScraperService.url(),
           // TODO: replace this with the actual command name
           performancesCommand: 'placeholder',
@@ -214,13 +268,6 @@ export default class NotificationService extends ServiceBase {
           movieInfoCommand: 'placeholder',
         }),
       });
-
-      const typingInterval = setInterval(() => {
-        threadLogger.debug('Sending typing status to Discord API');
-        thread.sendTyping().catch((err: unknown) => {
-          threadLogger.error(err, 'Failed to send typing status to Discord API');
-        });
-      }, 5000);
 
       let sentMessages = 0;
       let failedMessages = 0;
@@ -284,5 +331,9 @@ export default class NotificationService extends ServiceBase {
     } catch (err) {
       logger.error(err, 'Failed to notify guild');
     }
+  }
+
+  private getJobName(schedule: string): string {
+    return `guild-${schedule}`;
   }
 }
