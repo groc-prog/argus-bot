@@ -116,7 +116,7 @@ export default class NotificationService extends ServiceBase {
     }
   }
 
-  async sendGuildNotifications(context: GuildNotificationContext): Promise<void> {
+  private async sendGuildNotifications(context: GuildNotificationContext): Promise<void> {
     const logger = this.logger.child({ schedule: context.schedule });
 
     logger.info('Fetching movie data from database');

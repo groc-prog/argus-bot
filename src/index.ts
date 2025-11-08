@@ -37,7 +37,4 @@ const webScraperService = new WebScraperService();
 await webScraperService.initialize();
 
 const notificationService = new NotificationService();
-await notificationService.sendGuildNotifications({
-  schedule: '',
-  guildIds: new Set([process.env.DISCORD_TEST_GUILD_ID]),
-});
+await notificationService.initialize();
