@@ -47,6 +47,7 @@
     "croner": "^9.1.0",
     "dayjs": "^1.11.19",
     "discord.js": "^14.24.2",
+    "fuse.js": "^7.1.0",
     "handlebars": "^4.7.8",
     "mongoose": "^8.19.3",
     "pino": "^10.1.0"

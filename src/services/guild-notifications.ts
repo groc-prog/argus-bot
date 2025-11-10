@@ -1,6 +1,6 @@
 import movieInfoCommand from '@commands/movies/info';
 import moviePerformancesCommand from '@commands/movies/performances';
-import subscribeToNotificationsCommand from '@commands/notifications/subscribe';
+import mentionMeCommand from '@commands/notifications/mention-me';
 import { GuildConfigurationModel } from '@models/guild-configuration';
 import { MovieModel, type Movie, type MoviePerformance } from '@models/movie';
 import type { MovieAttribute } from '@models/movie-attribute';
@@ -270,11 +270,11 @@ export default class GuildNotificationService extends ServiceBase {
         locale in movieInfoCommand.data.name_localizations
           ? movieInfoCommand.data.name_localizations[locale]
           : movieInfoCommand.data.name;
-      const subscribeCommand =
-        subscribeToNotificationsCommand.data.name_localizations &&
-        locale in subscribeToNotificationsCommand.data.name_localizations
-          ? subscribeToNotificationsCommand.data.name_localizations[locale]
-          : subscribeToNotificationsCommand.data.name;
+      const mentionMeCommandName =
+        mentionMeCommand.data.name_localizations &&
+        locale in mentionMeCommand.data.name_localizations
+          ? mentionMeCommand.data.name_localizations[locale]
+          : mentionMeCommand.data.name;
 
       await thread.send({
         content: threadAnnouncementTemplates.get(locale)!({
@@ -283,7 +283,7 @@ export default class GuildNotificationService extends ServiceBase {
           websiteUrl: WebScraperService.url(),
           performancesCommand,
           infoCommand,
-          subscribeCommand,
+          mentionMeCommand: mentionMeCommandName,
         }),
       });
 

@@ -21,19 +21,20 @@ client.initialize = async function () {
       const eventName = event.name as keyof ClientEvents;
       const executeFn = event.execute as (...args: unknown[]) => unknown;
 
-      if ('once' in event && event.once) client.once(eventName, executeFn);
-      else client.on(eventName, executeFn);
+      if ('once' in event && event.once) this.once(eventName, executeFn);
+      else this.on(eventName, executeFn);
     }
 
     this.logger.debug(`Adding ${commands.length} commands to client`);
     for (const command of commands) {
-      this.logger.debug({ command: command.data.name }, 'Adding command to client');
+      this.logger.info({ command: command.data.name }, 'Adding command to client');
       this.commands.set(command.data.name, command);
     }
 
     this.logger.debug('Initializing Discord REST client');
     const rest = new REST().setToken(token);
 
+    const body = [...this.commands.values()].map((command) => command.data.toJSON());
     if (process.env.NODE_ENV !== 'production') {
       const testGuildId = process.env.DISCORD_TEST_GUILD_ID;
       if (!testGuildId)
@@ -45,21 +46,21 @@ client.initialize = async function () {
       );
       this.logger.info(
         { guildId: testGuildId },
-        `Refreshing ${client.commands.size} (/) commands in test guild`,
+        `Refreshing ${this.commands.size} (/) commands in test guild`,
       );
       await rest.put(Routes.applicationGuildCommands(applicationId, testGuildId), {
-        body: client.commands.values().map((command) => command.data.toJSON()),
+        body,
       });
     } else {
-      this.logger.info(`Refreshing ${client.commands.size} (/) commands in test guild`);
+      this.logger.info(`Refreshing ${this.commands.size} (/) commands in test guild`);
       await rest.put(Routes.applicationCommands(applicationId), {
-        body: client.commands.values().map((command) => command.data.toJSON()),
+        body,
       });
     }
 
-    this.logger.info(`Refreshed ${client.commands.size} (/) commands`);
+    this.logger.info(`Refreshed ${this.commands.size} (/) commands`);
     this.logger.info('Logging in using token');
-    await client.login(token);
+    await this.login(token);
   } catch (err) {
     this.logger.error(err, 'Failed to initialize discord bot');
     throw err;

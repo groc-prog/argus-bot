@@ -26,6 +26,7 @@ const guildConfigurationSchema = new mongoose.Schema(
       default: process.env.DEFAULT_NOTIFICATION_SCHEDULE,
       validate: {
         validator: (value: unknown) => {
+          if (value == undefined) return true;
           if (typeof value !== 'string') return false;
 
           try {
@@ -46,6 +47,7 @@ const guildConfigurationSchema = new mongoose.Schema(
     notificationsEnabled: {
       type: mongoose.SchemaTypes.Boolean,
       default: false,
+      required: true,
     },
     /**
      * Whether the bot should include the poster of the movie in his notification. Only works if the
@@ -54,6 +56,7 @@ const guildConfigurationSchema = new mongoose.Schema(
     includePosterInNotifications: {
       type: mongoose.SchemaTypes.Boolean,
       default: false,
+      required: true,
     },
     /**
      * Whether the bot should include the URL of the trailer for the movie in his notification. Only
@@ -62,6 +65,7 @@ const guildConfigurationSchema = new mongoose.Schema(
     includeTrailerInNotifications: {
       type: mongoose.SchemaTypes.Boolean,
       default: false,
+      required: true,
     },
     /**
      * Timezone that will be used for date values in messages from the bot. Defaults to `Europe/Vienna` when
@@ -81,6 +85,7 @@ const guildConfigurationSchema = new mongoose.Schema(
        * Resolves the guild belonging to this model's `guildId`.
        * @async
        * @throws {Error} If the Discord client is not initialized yet.
+       * @throws {Error} If the Guild can not be resolved.
        * @returns {Guild} The resolved guild.
        */
       async resolveGuild(): Promise<Guild> {
@@ -148,6 +153,7 @@ const guildConfigurationSchema = new mongoose.Schema(
        * Resolves the role belonging to this model's `notificationMentionedRoleId`.
        * @async
        * @throws {Error} If the Discord client is not initialized yet.
+       * @throws {Error} If the Guild can not be resolved.
        * @returns {Role | null} The resolved role or null if the role is invalid or
        * not configured yet.
        */
@@ -164,7 +170,18 @@ const guildConfigurationSchema = new mongoose.Schema(
 
         logger.info('Fetching guild from Discord API');
         const guild = await client.guilds.fetch(this.guildId);
+        const me = await guild.members.fetchMe();
+
+        logger.info('Fetching role from Discord API');
         const role = await guild.roles.fetch(this.notificationMentionedRoleId);
+        if (!role) return null;
+
+        logger.info('Checking if bot is allowed to assign role');
+        if (role.position >= me.roles.highest.position) {
+          logger.info('Role position is higher than highest bot role');
+          return null;
+        }
+
         return role;
       },
     },
