@@ -7,10 +7,11 @@ import type { MovieAttribute } from '@models/movie-attribute';
 import ServiceBase from '@services/service-base';
 import WebScraperService from '@services/web-scraper';
 import threadAnnouncementTemplates from '@templates/guild-notification/thread-announcement';
-import threadEmbedDescriptionTemplates from '@templates/guild-notification/thread-embed-description';
-import threadEmbedTitleTemplates from '@templates/guild-notification/thread-embed-title';
 import threadMessageTemplates from '@templates/guild-notification/thread-message';
 import threadNameTemplates from '@templates/guild-notification/thread-name';
+import movieEmbedDescriptionTemplates from '@templates/movie/movie-embed-description';
+import movieEmbedTitleTemplates from '@templates/movie/movie-poster-embed';
+import type { WithId } from '@utils/mongoose';
 import type { DeepWriteable } from '@utils/object';
 import { Cron, scheduledJobs } from 'croner';
 import dayjs from 'dayjs';
@@ -21,25 +22,23 @@ import {
   ThreadAutoArchiveDuration,
   type BaseMessageOptions,
 } from 'discord.js';
-import mongoose from 'mongoose';
 
 interface JobContext {
   guildIds: Set<string>;
 }
 
-type PopulatedMovie = Pick<
-  Movie,
-  'posterUrl' | 'trailerUrl' | 'title' | 'description' | 'lengthMinutes'
-> & {
-  fsk?: MovieAttribute | null;
-  genres: MovieAttribute[];
-  technologyAttributes: MovieAttribute[];
-  performances: (Pick<MoviePerformance, 'showtimeUtc'> & {
-    attributes: MovieAttribute[];
-    theatre: MovieAttribute;
-    seatClasses: MovieAttribute[];
-  })[];
-};
+type PopulatedMovie = WithId<
+  Pick<Movie, 'posterUrl' | 'trailerUrl' | 'title' | 'description' | 'lengthMinutes'> & {
+    fsk?: WithId<MovieAttribute> | null;
+    genres: WithId<MovieAttribute>[];
+    technologyAttributes: WithId<MovieAttribute>[];
+    performances: (Pick<MoviePerformance, 'showtimeUtc'> & {
+      attributes: WithId<MovieAttribute>[];
+      theatre: WithId<MovieAttribute>;
+      seatClasses: WithId<MovieAttribute>[];
+    })[];
+  }
+>;
 
 export default class GuildNotificationService extends ServiceBase {
   async initialize(): Promise<void> {
@@ -201,7 +200,8 @@ export default class GuildNotificationService extends ServiceBase {
         genres: 1,
         technologyAttributes: 1,
         performances: { $slice: 3 },
-      })) as unknown as mongoose.HydratedDocument<PopulatedMovie>[];
+      })
+      .lean()) as unknown as PopulatedMovie[];
 
     logger.debug('Checking if there are movies with truncated performances');
     const hasTruncatedPerformances = await MovieModel.countDocuments({
@@ -224,7 +224,7 @@ export default class GuildNotificationService extends ServiceBase {
 
   private async createAndNotifyThread(
     guildId: string,
-    movies: mongoose.HydratedDocument<PopulatedMovie>[],
+    movies: PopulatedMovie[],
     performancesTruncated: boolean,
   ): Promise<void> {
     const logger = this.logger.child({ guild: guildId });
@@ -291,14 +291,15 @@ export default class GuildNotificationService extends ServiceBase {
       let failedMessages = 0;
       for (const movie of movies) {
         try {
-          threadLogger.debug({ movie: movie.id }, 'Sending notification for movie');
+          threadLogger.debug({ movie: movie._id.toString() }, 'Sending notification for movie');
           const embeds: DeepWriteable<BaseMessageOptions['embeds']> = [];
           if (guildConfiguration.includePosterInNotifications && movie.posterUrl)
             embeds.push(
               new EmbedBuilder()
-                .setTitle(threadEmbedTitleTemplates.get(locale)!({ title: movie.title }))
+                .setTitle(movieEmbedTitleTemplates.get(locale)!({ title: movie.title }))
+                .setURL(movie.posterUrl)
                 .setImage(movie.posterUrl)
-                .setDescription(threadEmbedDescriptionTemplates.get(locale)!({})),
+                .setDescription(movieEmbedDescriptionTemplates.get(locale)!({})),
             );
 
           await thread.send({
@@ -332,7 +333,10 @@ export default class GuildNotificationService extends ServiceBase {
 
           sentMessages++;
         } catch (err) {
-          threadLogger.error({ err, movie: movie.id }, 'Failed to send message to thread');
+          threadLogger.error(
+            { err, movie: movie._id.toString() },
+            'Failed to send message to thread',
+          );
           failedMessages++;
         }
       }

@@ -2,8 +2,8 @@ import unmentionMeCommand from '@commands/notifications/unmention-me';
 import setupCommand from '@commands/utils/setup';
 import { GuildConfigurationModel } from '@models/guild-configuration';
 import guildNotFoundTemplates from '@templates/fallback/guild-not-found';
-import missingConfigurationTemplates from '@templates/notifications/mention/missing-configuration';
-import roleAssignedTemplates from '@templates/notifications/mention/role-assigned';
+import missingConfigurationTemplates from '@templates/mention/missing-configuration';
+import roleAssignedTemplates from '@templates/mention/role-assigned';
 import { sendLocalizedReply } from '@utils/discord';
 import { interactionContextAwareLogger } from '@utils/logger';
 import {
