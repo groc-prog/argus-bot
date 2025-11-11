@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-
 import client from '@bot-client';
 import fallbackErrorTemplates from '@templates/fallback/error';
 import { sendLocalizedReply } from '@utils/discord';
@@ -27,7 +25,7 @@ export default {
 
         if (!('execute' in command)) throw new Error('Command does not expose `execute` function');
 
-        const executeFn = command.execute as (
+        const executeFn = command.execute.bind(command) as (
           interaction: ChatInputCommandInteraction,
         ) => Promise<void>;
 
@@ -53,7 +51,7 @@ export default {
         if (!('autocomplete' in command))
           throw new Error('Command does not expose `autocomplete` function');
 
-        const autocompleteFn = command.autocomplete as (
+        const autocompleteFn = command.autocomplete.bind(command) as (
           interaction: AutocompleteInteraction,
         ) => Promise<void>;
 

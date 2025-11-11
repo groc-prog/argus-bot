@@ -1,16 +1,16 @@
 import { compileFromDefinitions, type MessageDefinitions } from '@utils/handlebars';
 import { message } from '@utils/string';
-import { bold, heading, inlineCode, Locale } from 'discord.js';
+import { bold, heading, inlineCode, Locale, quote } from 'discord.js';
 
 const definitions: MessageDefinitions = {
   [Locale.EnglishUS]: message`
     {{#if hasChanges}}
       ${heading('🎉 Done and done!')}
-      This bot right here is now ready to get started. Your new configuration was successfully saved.
+      This bot right here is now ready to get started. Your new configuration was successfully saved. You can change this configuration anytime by defining any of the options for the current command.
     {{/if}}
     {{#unless hasChanges}}
-    ${heading('🧩 Bot configuration')}
-    Here is the currently used configuration. You can change this configuration anytime by defining any of the options for the current command.
+      ${heading('🔧 Bot configuration')}
+      Here is the currently used configuration. You can change this configuration anytime by defining any of the options for the current command.
     {{/unless}}
 
     ${bold('Channel:')}  {{#if channel}}${inlineCode('{{channel}}')}{{else}}${inlineCode('NOT CONFIGURED')}{{/if}}
@@ -20,15 +20,17 @@ const definitions: MessageDefinitions = {
     ${bold('Trailers:')}  {{#if includeTrailers}}${inlineCode('YES')}{{else}}${inlineCode('NO')}{{/if}}
     ${bold('Posters:')}  {{#if includePosters}}${inlineCode('YES')}{{else}}${inlineCode('NO')}{{/if}}
     ${bold('Preferred timezone:')}  ${inlineCode('{{timezone}}')}
+
+    ${quote(`Responded in ${inlineCode('{{responseTime}}ms')}`)}
   `,
   [Locale.German]: message`
     {{#if hasChanges}}
       ${heading('🎉 Fertig und erledigt!')}
-      Dieser Bot ist jetzt bereit, loszulegen. Deine neue Konfiguration wurde erfolgreich übernommen.
+      Dieser Bot ist jetzt bereit, loszulegen. Deine neue Konfiguration wurde erfolgreich übernommen. Du kannst diese Einstellungen jederzeit ändern, indem du die Optionen dieses Befehls definierst.
     {{/if}}
     {{#unless hasChanges}}
-    ${heading('🧩 Bot-Konfiguration')}
-    Hier ist die derzeit benutze Konfiguration. Du kannst diese Einstellungen jederzeit ändern, indem du die Optionen dieses Befehls definierst.
+      ${heading('🔧 Bot-Konfiguration')}
+      Hier ist die derzeit benutze Konfiguration. Du kannst diese Einstellungen jederzeit ändern, indem du die Optionen dieses Befehls definierst.
     {{/unless}}
 
     ${bold('Kanal:')}  {{#if channel}}${inlineCode('{{channel}}')}{{else}}${inlineCode('NICHT KONFIGURIERT')}{{/if}}
@@ -38,6 +40,8 @@ const definitions: MessageDefinitions = {
     ${bold('Trailer:')}  {{#if includeTrailers}}${inlineCode('JA')}{{else}}${inlineCode('NEIN')}{{/if}}
     ${bold('Poster:')}  {{#if includePosters}}${inlineCode('JA')}{{else}}${inlineCode('NEIN')}{{/if}}
     ${bold('Bevorzugte Zeitzone:')}  ${inlineCode('{{timezone}}')}
+
+    ${quote(`Geantwortet in ${inlineCode('{{responseTime}}ms')}`)}
   `,
 };
 

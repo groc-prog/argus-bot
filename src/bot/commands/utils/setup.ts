@@ -1,4 +1,3 @@
-import statusCommand from '@commands/utils/status';
 import { GuildConfigurationModel } from '@models/guild-configuration';
 import missingPermissionTemplates from '@templates/fallback/missing-permission';
 import configurationUpdatedTemplates from '@templates/setup/configuration-updated';
@@ -24,15 +23,16 @@ import {
 
 import GuildNotificationService from '@services/guild-notifications';
 import guildNotFoundTemplates from '@templates/fallback/guild-not-found';
+import dayjs from 'dayjs';
 import Fuse from 'fuse.js';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('setup')
-    .setDescription('Configure the bot to your specific needs.')
+    .setDescription('View the current configuration or configure the bot to your specific needs.')
     .setDescriptionLocalization(
       Locale.German,
-      'Konfiguriere den Bot so wie du es dir am besten passt.',
+      'Sieh dir die Konfiguration an oder konfiguriere den Bot so wie du es dir am besten passt.',
     )
     .setContexts(InteractionContextType.Guild)
     .addStringOption((option) =>
@@ -139,14 +139,13 @@ export default {
     const configuration = await GuildConfigurationModel.findOne({ guildId: interaction.guildId });
     if (!configuration) {
       logger.info('Configuration not found');
-      const statusCommandName =
-        statusCommand.data.name_localizations &&
-        interaction.locale in statusCommand.data.name_localizations
-          ? statusCommand.data.name_localizations[interaction.locale]
-          : statusCommand.data.name;
+      const setupCommandName =
+        this.data.name_localizations && interaction.locale in this.data.name_localizations
+          ? this.data.name_localizations[interaction.locale]
+          : this.data.name;
 
       await sendLocalizedReply(interaction, guildNotFoundTemplates, {
-        template: { statusCommand: statusCommandName },
+        template: { setupCommand: setupCommandName },
         interaction: {
           flags: [MessageFlags.Ephemeral],
         },
@@ -242,6 +241,7 @@ export default {
         includeTrailers: configuration.includeTrailerInNotifications,
         includePosters: configuration.includePosterInNotifications,
         timezone: configuration.preferredTimezone,
+        responseTime: dayjs().diff(interaction.createdAt, 'ms'),
       },
       interaction: {
         flags: [MessageFlags.Ephemeral],

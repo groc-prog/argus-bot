@@ -1,5 +1,5 @@
 import mentionMeCommand from '@commands/notifications/mention-me';
-import statusCommand from '@commands/utils/status';
+import setupCommand from '@commands/utils/setup';
 import { GuildConfigurationModel } from '@models/guild-configuration';
 import guildNotFoundTemplates from '@templates/fallback/guild-not-found';
 import missingConfigurationTemplates from '@templates/notifications/mention/missing-configuration';
@@ -39,14 +39,14 @@ export default {
     logger.info('Getting role ID to remove from guild configuration');
     const configuration = await GuildConfigurationModel.findOne({ guildId: interaction.guildId });
     if (!configuration) {
-      const statusCommandName =
-        statusCommand.data.name_localizations &&
-        interaction.locale in statusCommand.data.name_localizations
-          ? statusCommand.data.name_localizations[interaction.locale]
-          : statusCommand.data.name;
+      const setupCommandName =
+        setupCommand.data.name_localizations &&
+        interaction.locale in setupCommand.data.name_localizations
+          ? setupCommand.data.name_localizations[interaction.locale]
+          : setupCommand.data.name;
 
       await sendLocalizedReply(interaction, guildNotFoundTemplates, {
-        template: { statusCommand: statusCommandName },
+        template: { setupCommand: setupCommandName },
         interaction: {
           flags: [MessageFlags.Ephemeral],
         },

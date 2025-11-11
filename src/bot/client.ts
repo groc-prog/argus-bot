@@ -27,7 +27,7 @@ client.initialize = async function () {
 
     this.logger.debug(`Adding ${commands.length} commands to client`);
     for (const command of commands) {
-      this.logger.info({ command: command.data.name }, 'Adding command to client');
+      this.logger.debug({ command: command.data.name }, 'Adding command to client');
       this.commands.set(command.data.name, command);
     }
 
