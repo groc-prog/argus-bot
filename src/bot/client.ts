@@ -34,7 +34,7 @@ client.initialize = async function () {
     this.logger.debug('Initializing Discord REST client');
     const rest = new REST().setToken(token);
 
-    const body = [...this.commands.values()].map((command) => command.data.toJSON());
+    const body = Array.from(this.commands.values()).map((command) => command.data.toJSON());
     if (process.env.NODE_ENV !== 'production') {
       const testGuildId = process.env.DISCORD_TEST_GUILD_ID;
       if (!testGuildId)

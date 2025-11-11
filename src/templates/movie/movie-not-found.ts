@@ -9,7 +9,7 @@ const definitions: MessageDefinitions = {
   `,
   [Locale.German]: message`
     ${heading('🔍 Seltsam, scheint so, als könnte der Bot diesen Film nicht finden')}
-    Egal, welchen Film du dir ansehen wolltest – der Bot kann dir dabei leider nicht helfen. Er kennt nur Filme, die bereits liefen oder derzeit im Kino sind. Aber ich kann dir garantieren, dass alle vorgeschlagenen Filme funktionieren werden.
+    Egal, welchen Film du dir ansehen wolltest — der Bot kann dir dabei leider nicht helfen. Er kennt nur Filme, die bereits liefen oder derzeit im Kino sind. Aber ich kann dir garantieren, dass alle vorgeschlagenen Filme funktionieren werden.
   `,
 };
 

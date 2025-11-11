@@ -5,11 +5,11 @@ import { heading, inlineCode, Locale } from 'discord.js';
 const definitions: MessageDefinitions = {
   [Locale.EnglishUS]: message`
     ${heading("⚠️ Wait, that's illegal")}
-    This command can only be invoked by someone with the ${inlineCode('ManageGuild')} permission.
+    This command can only be invoked by someone with the ${inlineCode('Manage Server')} permission.
   `,
   [Locale.German]: message`
     ${heading('⚠️ Entschuldige, aber das ist höchst illegal')}
-    Dieser Befehl kann nur von jemandem ausgeführt werden, der die ${inlineCode('ManageGuild')} Berechtigung hat.
+    Dieser Befehl kann nur von jemandem ausgeführt werden, der die ${inlineCode('Server Verwalten')} Berechtigung hat.
   `,
 };
 

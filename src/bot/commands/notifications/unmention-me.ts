@@ -17,6 +17,7 @@ import {
 export default {
   data: new SlashCommandBuilder()
     .setName('unmention-me')
+    .setNameLocalization(Locale.German, 'nicht-mehr-erwähnen')
     .setDescription('Stop getting mentioned for any future movie updates in this guild.')
     .setDescriptionLocalization(
       Locale.German,
