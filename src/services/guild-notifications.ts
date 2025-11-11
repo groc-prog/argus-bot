@@ -150,6 +150,12 @@ export default class GuildNotificationService extends ServiceBase {
           },
         },
         async (job, context) => {
+          if ((context as Pick<JobContext, 'guildIds'>).guildIds.size === 0) {
+            logger.info('Job does no longer have any guild IDs attached, stopping job');
+            job.stop();
+            return;
+          }
+
           await this.sendNotifications(
             job.getPattern() as string,
             (context as Pick<JobContext, 'guildIds'>).guildIds,
