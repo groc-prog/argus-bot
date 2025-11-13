@@ -6,13 +6,8 @@ export default {
   plugins: [
     '@semantic-release/commit-analyzer',
     '@semantic-release/release-notes-generator',
+    '@semantic-release/github',
     ['@semantic-release/changelog', { changelogFile: 'CHANGELOG.md' }],
-    [
-      '@semantic-release/github',
-      {
-        assets: [{ path: 'argus-bot.zip', label: 'argus-bot distribution' }],
-      },
-    ],
     [
       '@semantic-release/npm',
       {

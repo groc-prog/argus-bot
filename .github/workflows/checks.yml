@@ -3,7 +3,6 @@ name: Lint, type-check and format
 on:
   push:
     branches:
-      - main
       - feature/**
       - hotfix/**
   pull_request:
@@ -31,9 +30,9 @@ jobs:
             bun.lock
             node_modules
           key: bun-deps-${{ hashFiles('bun.lock') }}
-      - name: Install Dependencies
+      - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: bun ci
+        run: bun ci --frozen-lockfile
 
   lint:
     name: Lint
@@ -43,6 +42,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Restore Bun cache
         uses: actions/cache@v3
         with:
@@ -62,6 +63,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Restore Bun cache
         uses: actions/cache@v3
         with:
@@ -81,6 +84,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Restore Bun cache
         uses: actions/cache@v3
         with:

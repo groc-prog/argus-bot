@@ -7,7 +7,6 @@
   "scripts": {
     "start": "bun run src/index.ts | jq",
     "dev": "bun run --hot src/index.ts | jq",
-    "build": "bun build src/index.ts --outdir dist --target bun --env disable --sourcemap",
     "fmt": "prettier --write src/**",
     "fmt:check": "prettier --check src/**",
     "lint": "eslint --cache --fix src/**",
