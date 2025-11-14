@@ -1,5 +1,7 @@
 import { merge } from '@utils/object';
 import type { Interaction } from 'discord.js';
+import fs from 'node:fs/promises';
+import path from 'path';
 import pino, { type TransportTargetOptions } from 'pino';
 import packageJson from '../../package.json';
 
@@ -9,11 +11,15 @@ const transportTargets: TransportTargetOptions[] = [
   },
 ];
 
-if (process.env.NODE_ENV === 'production')
+if (process.env.NODE_ENV === 'production') {
+  const logsDirectory = path.join(process.cwd(), 'logs');
+  if (!(await fs.exists(logsDirectory))) await fs.mkdir(logsDirectory, { recursive: true });
+
   transportTargets.push({
     target: 'pino/file',
-    options: { destination: `${import.meta.dirname}/app.log` },
+    options: { destination: path.join(logsDirectory, 'app.log') },
   });
+}
 
 const logger = pino(
   {

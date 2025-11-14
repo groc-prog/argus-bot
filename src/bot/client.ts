@@ -52,7 +52,7 @@ client.initialize = async function () {
         body,
       });
     } else {
-      this.logger.info(`Refreshing ${this.commands.size} (/) commands in test guild`);
+      this.logger.info(`Refreshing ${this.commands.size} (/) global commands`);
       await rest.put(Routes.applicationCommands(applicationId), {
         body,
       });
